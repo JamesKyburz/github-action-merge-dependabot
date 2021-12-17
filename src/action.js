@@ -69,8 +69,9 @@ module.exports = async function run() {
       return logInfo('Approving only')
     }
 
-    await client.mergePullRequest(pr.number, MERGE_METHOD)
-    logInfo('Dependabot merge completed')
+    const { sha } = await client.mergePullRequest(pr.number, MERGE_METHOD)
+    logInfo(`Dependabot merge completed sha ${sha}`)
+    core.setOutput('merged-sha', sha)
   } catch (error) {
     core.setFailed(error.message)
   }

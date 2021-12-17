@@ -14,6 +14,7 @@ const actionGithubClient = require('../src/github-client')
 
 const GITHUB_TOKEN = 'the-token'
 const BOT_NAME = 'dependabot[bot]'
+const MERGED_SHA = 'fe46726f8170f58c1417e74bd75c47754a59bc73'
 
 function buildStubbedAction({
   payload,
@@ -28,14 +29,14 @@ function buildStubbedAction({
   const utilStub = sinon.stub(actionUtil, 'getInputs')
     .returns({ GITHUB_TOKEN, ...inputs })
 
-  const prStub = sinon.stub();
-  const approveStub = sinon.stub();
-  const mergeStub = sinon.stub();
+  const prStub = sinon.stub()
+  const approveStub = sinon.stub()
+  const mergeStub = sinon.stub()
   const clientStub = sinon.stub(actionGithubClient, 'githubClient')
     .returns({
       getPullRequest: prStub.resolves(),
       approvePullRequest: approveStub.resolves(),
-      mergePullRequest: mergeStub.resolves()
+      mergePullRequest: mergeStub.resolves({ sha: MERGED_SHA })
     })
 
   const action = proxyquire('../src/action', {
@@ -185,7 +186,8 @@ tap.test('should review and merge', async () => {
 
   await action()
 
-  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, `Dependabot merge completed sha ${MERGED_SHA}`)
+  sinon.assert.calledWithExactly(stubs.coreStub.setOutput, 'merged-sha', MERGED_SHA)
   sinon.assert.calledOnce(stubs.approveStub)
   sinon.assert.calledOnce(stubs.mergeStub)
 })
@@ -206,7 +208,8 @@ tap.test('should merge github-action-merge-dependabot minor release', async () =
 
   await action()
 
-  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, `Dependabot merge completed sha ${MERGED_SHA}`)
+  sinon.assert.calledWithExactly(stubs.coreStub.setOutput, 'merged-sha', MERGED_SHA)
   sinon.assert.calledOnce(stubs.approveStub)
   sinon.assert.calledOnce(stubs.mergeStub)
 })
@@ -269,7 +272,8 @@ tap.test('should review and merge', async () => {
 
   await action()
 
-  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, `Dependabot merge completed sha ${MERGED_SHA}`)
+  sinon.assert.calledWithExactly(stubs.coreStub.setOutput, 'merged-sha', MERGED_SHA)
   sinon.assert.calledOnce(stubs.approveStub)
   sinon.assert.calledOnce(stubs.mergeStub)
 })

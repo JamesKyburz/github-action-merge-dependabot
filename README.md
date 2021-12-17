@@ -42,6 +42,12 @@ An example of a non-semantic version is a commit hash when using git submodules.
 
 _Optional_ A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a seperate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event)
 
+## Outputs
+
+### `merged-sha`
+
+_Optional_ sha if pull request merged
+
 ## Usage
 
 Configure this action in your workflows providing the inputs described above.
