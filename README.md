@@ -2,7 +2,6 @@
 
 This action automatically approves and merges dependabot PRs.
 
-
 ## Inputs
 
 ### `github-token`
@@ -155,6 +154,44 @@ curl -X POST \
   -d '{"ref":"{ref}", "inputs":{ "pr-number": "{number}"}}'
 ```
 
+### Merge with post trigger of push workflow
+
+```yml
+name: CI
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # ...
+
+  automerge:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      contents: write
+
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v3
+        id: automerge
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/github-script@v5
+        name: trigger ci
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            await github.rest.actions.createWorkflowDispatch({
+              owner,
+              repo,
+              workflow_id: 'filename of this workflow',
+              ref: '${{ steps.automerge.outputs.merged-sha }}'
+            })
+```
 
 ## How to upgrade from `2.x` to new `3.x`
 
@@ -163,7 +200,6 @@ curl -X POST \
 - If you have customized the `api-url` you can:
   - Remove the `api-url` option from your workflow.
   - Turn off the [`dependabot-merge-action-app`](https://github.com/fastify/dependabot-merge-action-app/) application.
-
 
 Migration example:
 
